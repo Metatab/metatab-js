@@ -57,9 +57,18 @@
         
         if (Array.isArray(termArgs)){
             this.termArgs = []
+            var valid_vals = 0
             for (var i=0; i < termArgs.length; i++){
-                this.termArgs.push(termArgs[i]);
+                if (termArgs[i].trim()){
+                    valid_vals++;
+                }
+                this.termArgs.push(termArgs[i].trim());
             }
+            
+            if (valid_vals == 0){
+                this.termArgs = [];
+            }
+            
         } else {
             this.termArgs = [];
         }
@@ -81,6 +90,25 @@
         this.toString = function(){
             return "<Term "+this.parentTerm+"."+this.recordTerm+"="+
             this.value+" "+JSON.stringify(this.termArgs)+" >"
+        }
+        
+        this.clone = function(){
+            
+            c = new Term(this.term, this.value, this.termArgs);
+            c.parentTerm = this.parentTerm;
+            c.recordTerm = this.recordTerm;
+            c.children = this.children;
+            c.section = this.cection;
+            c.filename = this.filename;
+            c.row = this.row;
+            c.col = this.col;
+            c.termValueName = this.termValueName;
+            c.childPropertyType = this.childPropertyType;
+            c.valid = this.valid;
+            c.isArgChild = this.isArgChild;
+            
+            return c;
+            
         }
 
     };
@@ -118,25 +146,104 @@
     
     var generateTerms = function(path, cb){
         
-        generateRows(path, function(row_num, row){
+        generateRows(path, function(rowNum, row){
             var term = termFromRow(row);
-            if (term){
-                term.row = row_num;
+            if (term && term.term ){
+                term.row = rowNum;
                 term.col = 1;
                 term.fileName = path;
                 cb(term);
+                
+                // Include another file
+                if (term.recordTerm.toLowerCase() != 'include' ){
+                    // Do includy stuff
+                }
+                
+                // Generate child terms
+                if (term.recordTerm.toLowerCase() != 'section' ){
+                    for(var i = 0; i < term.termArgs.length; i++){
+                        if (term.value.trim()){
+                            var childTerm = 
+                                new Term(term.recordTerm.toLowerCase()+"."+String(i), 
+                                         String(term.termArgs[i]), 
+                                         [] );
+                            childTerm.row = rowNum;
+                            childTerm.col = i + 2;
+                            childTerm.fileName = path;
+                            cb(childTerm);
+                        }
+                    }
+                }
+                
             } else {
                 // TODO Handle error
             }
         });
     }
     
+    var TermInterpreter = function (path, cb) {
+      
+        this.substituteSynonym = function(nt, t){
+            
+        }
+        
+        this.join = function(t1, t2){
+            return t1+'.'+t2
+        }
+    
+        this.run = function(){
+        
+            var self = this;
+            
+            var LastParentTerm = 'root';
+            var paramMap = {};
+        
+            generateTerms(path, function(term){
+            
+                var nt = term.clone();
+            
+                self.substituteSynonym(nt, term);
+            
+                if (nt.record_term == ELIDED_TERM && lastParentTerm){
+                    nt.parentTerm = lastParentTerm;
+                } else if ( ! nt.isArgChild){
+                    lastParentTerm = nt.recordTerm;
+                }
+            
+                if (parseInt(term.recordTerm) in paramMap){
+                    nt.recordTerm = String(paramMap[parseInt(term.recordTerm)]);
+                }
+                
+                
+                if (nt.recordTerm.toLowerCase() == 'section'){
+                    paramMap = {};
+                    for(var i = 0; i < nt.termArgs.length; i++){
+                        paramMap[i] = String(nt.termArgs[i]).toLowerCase();
+                    }
+                    
+                    
+                }
+                
+            
+                cb(nt);
+            });
+        };
+        
+        
+        
+    };
+    
+    
     var parse = function(path){
         
-        generateTerms(path, function(term){
+        interp = new TermInterpreter(path, function(term){
             console.log(term.toString()); 
         });
         
+        console.log(interp);
+        
+        interp.run();
+                
     }
     
     return {
