@@ -9,7 +9,12 @@ var urlbase = 'https://raw.githubusercontent.com/CivicKnowledge/metatab/master/t
 
 
 function testData(v){
-    return path.join(path.dirname(path.dirname(path.dirname(__filename))), 'test-data',v);
+    
+    for( var i = 4, d = __filename; i; i--){
+        d = path.dirname(d);
+    }
+    
+    return path.join(d, 'metatab-py', 'test-data',v);
 }
 
 function dumpTerms(ti){
