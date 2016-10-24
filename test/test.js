@@ -7,13 +7,17 @@ const flatten = require('./flatten.js');
 
 var urlbase = 'https://raw.githubusercontent.com/CivicKnowledge/metatab/master/test-data/';
 
-
+//
+// NOTE! THe files are pulled form the python metatab-py package, so you first
+// have to git clone https://github.com/CivicKnowledge/metatab-py.git in the
+// same directory that holds metatab-js. 
 function testData(v){
     
-    for( var i = 4, d = __filename; i; i--){
+    for( var i = 3, d = __filename; i; i--){
         d = path.dirname(d);
     }
     
+    console.log(d);
     return path.join(d, 'metatab-py', 'test-data',v);
 }
 
