@@ -29,7 +29,7 @@ var json = JSON.stringify(ti.run().toDict());
 ```
 # Command line
 
-When the module is installed with `npm`, it also created an executable `metatab-js`, which can parse files from the shell:
+When the module is installed with `npm`, it also creates an executable `metatab-js`, which can parse files from the shell:
 
 ```bash
 $ metatab-js  https://raw.githubusercontent.com/CivicKnowledge/metatab-py/master/test-data/children.csv
